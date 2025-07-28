@@ -1,61 +1,51 @@
 {
-    "name": "@security-alliance/seal-isac-sdk",
-    "version": "0.1.9",
-    "description": "SEAL-ISAC SDK",
-    "publishConfig": {
-        "access": "public"
+    "name": "@security-alliance/seal-intel-sdk",
+    "version": "0.1.0",
+    "description": "TypeScript client for interacting with SEAL Intel",
+    "keywords": [
+        "seal-intel",
+        "security-alliance"
+    ],
+    "homepage": "https://github.com/security-alliance/seal-intel-sdk",
+    "bugs": {
+        "url": "https://github.com/security-alliance/seal-intel-sdk/issues"
     },
+    "license": "MIT",
+    "author": "Security Alliance",
     "type": "module",
+    "files": [
+        "dist/"
+    ],
     "exports": {
         ".": "./dist/index.js",
         "./web-content": "./dist/web-content/index.js"
     },
-    "typesVersions": {
-        "*": {
-            ".": [
-                "dist/index.d.ts"
-            ],
-            "./web-content": [
-                "dist/web-content/index.d.ts"
-            ]
-        }
-    },
+    "repository": "github:security-alliance/seal-intel-sdk",
     "scripts": {
-        "build": "rm -rf dist; tsc -p tsconfig.release.json",
+        "build": "rm -rf dist; tsc",
         "test": "mocha",
         "prepublishOnly": "npm run build",
         "prettier:check": "npx prettier -c \"**/*.{js,ts,md,json,yml,yaml}\"",
         "prettier:fix": "npx prettier -w \"**/*.{js,ts,md,json,yml,yaml}\""
     },
-    "bin": {
-        "seal-isac": "dist/cmd/index.js"
-    },
-    "keywords": [
-        "seal-isac",
-        "sdk",
-        "security-alliance"
-    ],
-    "author": "Security Alliance",
-    "license": "UNLICENSED",
-    "files": [
-        "dist/"
-    ],
     "dependencies": {
-        "@apollo/client": "^3.10.4",
-        "@security-alliance/opencti-client": "0.2.1",
+        "@apollo/client": "^3.13.8",
+        "@security-alliance/opencti-client": "^0.3.1",
         "@security-alliance/stix": "^0.1.1",
-        "apollo-upload-client": "^18.0.1",
-        "graphql": "^16.8.1",
-        "tldts": "^6.1.50",
-        "yargs": "^17.7.2"
+        "graphql": "^16.11.0",
+        "tldts": "^7.0.10"
     },
     "devDependencies": {
-        "@types/apollo-upload-client": "^18.0.0",
-        "@types/node": "^20.12.7",
-        "@types/yargs": "^17.0.33",
-        "mocha": "^10.7.3",
-        "prettier": "^3.3.3",
-        "tsx": "^4.19.1",
-        "typescript": "^5.4.5"
+        "@types/node": "^24.1.0",
+        "mocha": "^11.7.1",
+        "prettier": "^3.6.2",
+        "tsx": "^4.20.3",
+        "typescript": "^5.8.3"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "pnpm": {
+        "overrides": {}
     }
 }

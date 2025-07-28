@@ -6,8 +6,6 @@ import { WebContentClient } from "../src/index.js";
 import { OpenCTIClient } from "@security-alliance/opencti-client";
 import { WebContent } from "../src/web-content/types.js";
 
-const apiKey = process.env.SEAL_ISAC_API_KEY!;
-
 const SEAL_IDENTITY = generateIdentityId({
     name: "SEAL",
     identity_class: "organization",
@@ -63,7 +61,9 @@ const runTestsForWebContent = (type: string, client: WebContentClient, generator
 };
 
 describe("Web Content", () => {
-    const client = new WebContentClient(new OpenCTIClient("https://sealisac.dev", apiKey));
+    const client = new WebContentClient(
+        new OpenCTIClient("http://localhost:8080", "00000000-0000-0000-0000-000000000000"),
+    );
 
     runTestsForWebContent("domains", client, () => {
         return { type: "domain-name", value: `${randomUUID()}.invalid` };

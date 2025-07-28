@@ -1,10 +1,13 @@
+# SEAL Intel SDK
+
 ## Usage
 
 ### Setup
 
 ```typescript
-import { WebContentClient } from "@security-alliance/seal-isac-sdk";
-// Initialize the SDK with your SEAL-ISAC host and API key
+import { WebContentClient } from "@security-alliance/seal-intel-sdk";
+
+// initialize the SDK with your API key
 const client = new WebContentClient("https://sealisac.org", "your-api-key");
 ```
 

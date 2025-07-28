@@ -1,6 +1,7 @@
-import { Indicator, Label, Observable, OpenCTIClient } from "@security-alliance/opencti-client";
+import { OpenCTIClient } from "@security-alliance/opencti-client";
 import { generateIndicatorId, generateLabelId, MARKING_TLP_CLEAR } from "@security-alliance/opencti-client/stix";
 import { Identifier } from "@security-alliance/stix/2.1";
+import { Indicator_All, Label_All, Label_Simple, StixCyberObservable_All } from "@security-alliance/opencti-client";
 import { ALLOWLISTED_DOMAIN_LABEL, BLOCKLISTED_DOMAIN_LABEL, TRUSTED_WEB_CONTENT_LABEL, WebContent } from "./types.js";
 import { generateObservableIdForWebContent, generatePatternForWebContent } from "./utils.js";
 
@@ -36,76 +37,103 @@ export class WebContentClient {
         content: WebContent,
         props: CreateOrUpdateProperties,
 
-        observable: Observable,
-    ): Promise<Indicator> {
+        observable: StixCyberObservable_All,
+    ): Promise<Indicator_All> {
         const now = Date.now();
 
-        const existingIndicator = await this.client.getIndicator(
-            generateIndicatorId({ pattern: generatePatternForWebContent(content) }),
-        );
-        if (existingIndicator !== null) {
-            return await this.client.editIndicator(existingIndicator.id, [
-                { key: "valid_from", value: [new Date(now)] },
-                { key: "valid_until", value: [new Date(now + ONE_YEAR_IN_MILLIS)] },
-                { key: "x_opencti_score", value: [100] },
-                { key: "revoked", value: [false] },
-            ]);
+        const existingIndicator = await this.client.indicator({
+            id: generateIndicatorId({ pattern: generatePatternForWebContent(content) }),
+        });
+        if (existingIndicator) {
+            return (await this.client.indicatorFieldPatch({
+                id: existingIndicator.id,
+                input: [
+                    { key: "valid_from", value: [new Date(now)] },
+                    { key: "valid_until", value: [new Date(now + ONE_YEAR_IN_MILLIS)] },
+                    { key: "x_opencti_score", value: [100] },
+                    { key: "revoked", value: [false] },
+                ],
+            }))!;
         }
 
-        const indicator = await this.client.createIndicator({
-            createdBy: props.creator,
-            name: content.value,
-            pattern_type: "stix",
-            pattern: generatePatternForWebContent(content),
-            x_opencti_main_observable_type: toOpenCTIObservableType(content.type),
-            x_opencti_score: 100,
-            valid_from: new Date(now),
-            valid_until: new Date(now + ONE_YEAR_IN_MILLIS),
-        });
+        const indicator = (await this.client.indicatorAdd({
+            input: {
+                createdBy: props.creator,
+                name: content.value,
+                pattern_type: "stix",
+                pattern: generatePatternForWebContent(content),
+                x_opencti_main_observable_type: toOpenCTIObservableType(content.type),
+                x_opencti_score: 100,
+                valid_from: new Date(now),
+                valid_until: new Date(now + ONE_YEAR_IN_MILLIS),
+            },
+        }))!;
 
-        await this.client.addIndicatorRelationship(indicator.id, observable.id, "based-on");
+        await this.client.stixCoreRelationshipAdd({
+            input: {
+                fromId: indicator?.id,
+                toId: observable.id,
+                relationship_type: "based-on",
+            },
+        });
 
         return indicator;
     }
 
-    private async createOrUpdateObservable(content: WebContent, props: CreateOrUpdateProperties): Promise<Observable> {
-        const existingObservable = await this.client.getStixCyberObservable(generateObservableIdForWebContent(content));
-        if (existingObservable !== null) return await this.updateObservable(existingObservable, props);
+    private async createOrUpdateObservable(
+        content: WebContent,
+        props: CreateOrUpdateProperties,
+    ): Promise<StixCyberObservable_All> {
+        const existingObservable = await this.client.stixCyberObservable({
+            id: generateObservableIdForWebContent(content),
+        });
+        if (existingObservable) return await this.updateObservable(existingObservable, props);
         else return await this.createObservable(content, props);
     }
 
-    private async createObservable(content: WebContent, props: CreateOrUpdateProperties): Promise<Observable> {
+    private async createObservable(
+        content: WebContent,
+        props: CreateOrUpdateProperties,
+    ): Promise<StixCyberObservable_All> {
         switch (content.type) {
             case "domain-name":
-                return await this.client.createDomainObservable({
+                return (await this.client.stixCyberObservableAddTyped("Domain-Name", {
                     createdBy: props.creator,
-                    domain: content.value,
+                    DomainName: {
+                        value: content.value,
+                    },
                     objectLabel: props.labels,
                     objectMarking: [MARKING_TLP_CLEAR],
-                });
+                }))!;
             case "ipv4-addr":
-                return await this.client.createIPv4AddressObservable({
+                return (await this.client.stixCyberObservableAddTyped("IPv4-Addr", {
                     createdBy: props.creator,
-                    ip: content.value,
+                    IPv4Addr: {
+                        value: content.value,
+                    },
                     objectLabel: props.labels,
                     objectMarking: [MARKING_TLP_CLEAR],
-                });
+                }))!;
             case "ipv6-addr":
-                return await this.client.createIPv6AddressObservable({
+                return (await this.client.stixCyberObservableAddTyped("IPv6-Addr", {
                     createdBy: props.creator,
-                    ip: content.value,
+                    IPv6Addr: {
+                        value: content.value,
+                    },
                     objectLabel: props.labels,
                     objectMarking: [MARKING_TLP_CLEAR],
-                });
+                }))!;
             case "url":
                 const url = new URL(content.value);
 
-                const urlObservable = await this.client.createUrlObservable({
+                const urlObservable = (await this.client.stixCyberObservableAddTyped("Url", {
                     createdBy: props.creator,
-                    url: content.value,
+                    Url: {
+                        value: content.value,
+                    },
                     objectLabel: props.labels,
                     objectMarking: [MARKING_TLP_CLEAR],
-                });
+                }))!;
 
                 if (url.protocol === "http:" || url.protocol === "https:") {
                     const domainObservable = await this.createOrUpdateObservable(
@@ -114,10 +142,12 @@ export class WebContentClient {
                             creator: props.creator,
                         },
                     );
-                    await this.client.createRelationshipFromEntity({
-                        fromId: urlObservable.id,
-                        toId: domainObservable.id,
-                        relationship_type: "related-to",
+                    await this.client.stixCoreRelationshipAdd({
+                        input: {
+                            fromId: urlObservable.id,
+                            toId: domainObservable.id,
+                            relationship_type: "related-to",
+                        },
                     });
                 }
 
@@ -125,34 +155,48 @@ export class WebContentClient {
         }
     }
 
-    private async updateObservable(observable: Observable, props: CreateOrUpdateProperties): Promise<Observable> {
+    private async updateObservable(
+        observable: StixCyberObservable_All,
+        props: CreateOrUpdateProperties,
+    ): Promise<StixCyberObservable_All> {
         for (const label of props.labels ?? []) {
             if (this.findLabel(observable, label) === undefined) {
-                observable.objectLabel = await this.client.addLabel(observable.id, [generateLabelId({ value: label })]);
+                observable.objectLabel = (await this.client.stixCoreObjectEdit_relationsAdd(
+                    { id: observable.id },
+                    {
+                        input: {
+                            toIds: [generateLabelId({ value: label })],
+                            relationship_type: "object-label",
+                        },
+                    },
+                ))!.objectLabel;
             }
         }
         for (const label of props.removeLabels ?? []) {
             if (this.findLabel(observable, label) !== undefined) {
-                observable.objectLabel = await this.client.deleteLabel(
-                    observable.id,
-                    generateLabelId({ value: label }),
-                );
+                observable.objectLabel = (await this.client.stixCoreObjectEdit_relationDelete(
+                    { id: observable.id },
+                    {
+                        relationship_type: "object-label",
+                        toId: generateLabelId({ value: label }),
+                    },
+                ))!.objectLabel;
             }
         }
         return observable;
     }
 
-    private findLabel(observable: Observable, labelName: string): Label | undefined {
+    private findLabel(observable: StixCyberObservable_All, labelName: string): Label_Simple | undefined {
         return observable.objectLabel?.find((label) => label.value === labelName);
     }
 
     public async getWebContentStatus(content: WebContent): Promise<"blocked" | "trusted" | "unknown"> {
         const [observable, indicator] = await Promise.all([
-            this.client.getStixCyberObservable(generateObservableIdForWebContent(content)),
-            this.client.getIndicator(generateIndicatorId({ pattern: generatePatternForWebContent(content) })),
+            this.client.stixCyberObservable({ id: generateObservableIdForWebContent(content) }),
+            this.client.indicator({ id: generateIndicatorId({ pattern: generatePatternForWebContent(content) }) }),
         ]);
 
-        if (observable !== null) {
+        if (observable) {
             if (this.findLabel(observable, TRUSTED_WEB_CONTENT_LABEL) !== undefined) return "trusted";
 
             if (this.findLabel(observable, ALLOWLISTED_DOMAIN_LABEL) !== undefined) return "trusted";
@@ -160,7 +204,7 @@ export class WebContentClient {
             if (this.findLabel(observable, BLOCKLISTED_DOMAIN_LABEL) !== undefined) return "blocked";
         }
 
-        if (indicator !== null) {
+        if (indicator) {
             if (indicator.revoked) return "unknown";
 
             return "blocked";
@@ -169,7 +213,7 @@ export class WebContentClient {
         return "unknown";
     }
 
-    public async blockWebContent(content: WebContent, creator: Identifier<"identity">): Promise<Indicator> {
+    public async blockWebContent(content: WebContent, creator: Identifier<"identity">): Promise<Indicator_All> {
         const observable = await this.createOrUpdateObservable(content, {
             creator: creator,
             removeLabels: [ALLOWLISTED_DOMAIN_LABEL, BLOCKLISTED_DOMAIN_LABEL, TRUSTED_WEB_CONTENT_LABEL],
@@ -186,24 +230,33 @@ export class WebContentClient {
         return indicator;
     }
 
-    public async unblockWebContent(content: WebContent): Promise<Indicator | undefined> {
-        const observable = await this.client.getStixCyberObservable(generateObservableIdForWebContent(content));
-        if (observable !== null) {
+    public async unblockWebContent(content: WebContent): Promise<Indicator_All | undefined> {
+        const observable = await this.client.stixCyberObservable({ id: generateObservableIdForWebContent(content) });
+        if (observable) {
             await this.updateObservable(observable, {
                 removeLabels: [ALLOWLISTED_DOMAIN_LABEL, BLOCKLISTED_DOMAIN_LABEL, TRUSTED_WEB_CONTENT_LABEL],
             });
         }
 
-        const indicator = await this.client.getIndicator(
-            generateIndicatorId({ pattern: generatePatternForWebContent(content) }),
-        );
-        if (indicator === null) return undefined;
+        const indicator = await this.client.indicator({
+            id: generateIndicatorId({ pattern: generatePatternForWebContent(content) }),
+        });
+        if (!indicator) return undefined;
         if (indicator.revoked) return indicator;
 
-        return await this.client.editIndicator(indicator.id, [{ key: "x_opencti_score", value: [0] }]);
+        return (await this.client.indicatorFieldPatch({
+            id: indicator.id,
+            input: [
+                { key: "x_opencti_score", value: [0] },
+                { key: "revoked", value: [true] },
+            ],
+        }))!;
     }
 
-    public async trustWebContent(content: WebContent, creator: Identifier<"identity">): Promise<Observable> {
+    public async trustWebContent(
+        content: WebContent,
+        creator: Identifier<"identity">,
+    ): Promise<StixCyberObservable_All> {
         await this.unblockWebContent(content);
 
         return await this.createOrUpdateObservable(content, {
@@ -213,9 +266,9 @@ export class WebContentClient {
         });
     }
 
-    public async untrustWebContent(content: WebContent): Promise<Observable | undefined> {
-        const observable = await this.client.getStixCyberObservable(generateObservableIdForWebContent(content));
-        if (observable === null) return undefined;
+    public async untrustWebContent(content: WebContent): Promise<StixCyberObservable_All | undefined> {
+        const observable = await this.client.stixCyberObservable({ id: generateObservableIdForWebContent(content) });
+        if (!observable) return undefined;
 
         return await this.updateObservable(observable, {
             removeLabels: [BLOCKLISTED_DOMAIN_LABEL, ALLOWLISTED_DOMAIN_LABEL, TRUSTED_WEB_CONTENT_LABEL],
