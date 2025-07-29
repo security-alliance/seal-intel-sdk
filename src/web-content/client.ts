@@ -1,7 +1,6 @@
-import { OpenCTIClient } from "@security-alliance/opencti-client";
+import { Indicator_All, Label_Simple, OpenCTIClient, StixCyberObservable_All } from "@security-alliance/opencti-client";
 import { generateIndicatorId, generateLabelId, MARKING_TLP_CLEAR } from "@security-alliance/opencti-client/stix";
 import { Identifier } from "@security-alliance/stix/2.1";
-import { Indicator_All, Label_All, Label_Simple, StixCyberObservable_All } from "@security-alliance/opencti-client";
 import { ALLOWLISTED_DOMAIN_LABEL, BLOCKLISTED_DOMAIN_LABEL, TRUSTED_WEB_CONTENT_LABEL, WebContent } from "./types.js";
 import { generateObservableIdForWebContent, generatePatternForWebContent } from "./utils.js";
 

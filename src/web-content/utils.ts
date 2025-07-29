@@ -23,7 +23,7 @@ export const parseWebContent = (value: string): WebContent | undefined => {
     return undefined;
 };
 
-export const escapeSingleQuotes = (val: string) => val.replaceAll(`'`, `\\'`);
+export const escapeSingleQuotes = (val: string) => val.replace(/'/g, `\\'`);
 
 export const generatePatternForDomain = (domain: string) => {
     return `[domain-name:value = '${escapeSingleQuotes(domain)}']`;
