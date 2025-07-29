@@ -1,3 +1,4 @@
+import { Identity_Simple } from "@security-alliance/opencti-client";
 import { DomainName, IPv4Addr, IPv6Addr, Url } from "@security-alliance/stix/2.1";
 
 /**
@@ -22,3 +23,12 @@ export type WebContent = {
         value: string;
     };
 }[WebContentType];
+
+export type WebContentStatus =
+    | {
+          status: "unknown";
+      }
+    | {
+          status: "blocked" | "trusted";
+          actor?: Identity_Simple;
+      };
