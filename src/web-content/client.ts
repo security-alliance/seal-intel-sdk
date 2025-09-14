@@ -244,7 +244,7 @@ export class WebContentClient {
         if (observable) {
             await this.updateObservable(observable, {
                 creator: creator,
-                removeLabels: [ALLOWLISTED_DOMAIN_LABEL, BLOCKLISTED_DOMAIN_LABEL, TRUSTED_WEB_CONTENT_LABEL],
+                removeLabels: [ALLOWLISTED_DOMAIN_LABEL, BLOCKLISTED_DOMAIN_LABEL],
             });
         }
 
