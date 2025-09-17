@@ -1,11 +1,11 @@
-import { generateIdentityId } from "@security-alliance/opencti-client/stix";
-import { describe, it } from "node:test";
-import { randomInt, randomUUID } from "node:crypto";
-import assert from "node:assert";
-import { WebContentClient } from "../src/index.js";
 import { OpenCTIClient } from "@security-alliance/opencti-client";
-import { WebContent, WebContentStatus } from "../src/web-content/types.js";
+import { generateIdentityId } from "@security-alliance/opencti-client/stix";
 import { Identifier } from "@security-alliance/stix/2.1";
+import assert from "node:assert";
+import { randomInt, randomUUID } from "node:crypto";
+import { describe, it } from "node:test";
+import { WebContentClient } from "../src/index.js";
+import { WebContent, WebContentStatus } from "../src/web-content/types.js";
 
 const SEAL_IDENTITY = generateIdentityId({
     name: "SEAL",
@@ -100,41 +100,50 @@ const runTestsForWebContent = (type: string, client: WebContentClient, generator
     });
 };
 
-describe("Web Content", () => {
-    const client = new WebContentClient(
-        new OpenCTIClient("http://localhost:8080", "00000000-0000-0000-0000-000000000000"),
-        SEAL_IDENTITY,
-    );
+describe("Web Content", async () => {
+    const opencti = new OpenCTIClient("http://localhost:8080", "00000000-0000-0000-0000-000000000000");
+    await opencti.organizationAdd({
+        input: {
+            name: "SEAL",
+        },
+    });
+    await opencti.organizationAdd({
+        input: {
+            name: "ACME",
+        },
+    });
+
+    const client = new WebContentClient(opencti, SEAL_IDENTITY);
 
     runTestsForWebContent("domains", client, () => {
         return { type: "domain-name", value: `${randomUUID()}.invalid` };
     });
-    // runTestsForWebContent("ipv4-addr", client, () => {
-    //     return {
-    //         type: "ipv4-addr",
-    //         value: `${randomInt(255)}.${randomInt(255)}.${randomInt(255)}.${randomInt(255)}`,
-    //     };
-    // });
-    // runTestsForWebContent("ipv6-addr", client, () => {
-    //     const characters = "0123456789abcdef";
-    //     const ipv6 = Array(8)
-    //         .fill(0)
-    //         .map(() =>
-    //             Array(4)
-    //                 .fill(0)
-    //                 .map((v) => characters[randomInt(characters.length)])
-    //                 .join(""),
-    //         )
-    //         .join(":");
-    //     return { type: "ipv6-addr", value: ipv6 };
-    // });
-    // runTestsForWebContent("urls", client, () => {
-    //     return {
-    //         type: "url",
-    //         value: `https://${randomUUID()}.invalid/path/to/content`,
-    //     };
-    // });
-    // runTestsForWebContent("ipfs", client, () => {
-    //     return { type: "url", value: `ipfs://${randomUUID()}` };
-    // });
+    runTestsForWebContent("ipv4-addr", client, () => {
+        return {
+            type: "ipv4-addr",
+            value: `${randomInt(255)}.${randomInt(255)}.${randomInt(255)}.${randomInt(255)}`,
+        };
+    });
+    runTestsForWebContent("ipv6-addr", client, () => {
+        const characters = "0123456789abcdef";
+        const ipv6 = Array(8)
+            .fill(0)
+            .map(() =>
+                Array(4)
+                    .fill(0)
+                    .map((v) => characters[randomInt(characters.length)])
+                    .join(""),
+            )
+            .join(":");
+        return { type: "ipv6-addr", value: ipv6 };
+    });
+    runTestsForWebContent("urls", client, () => {
+        return {
+            type: "url",
+            value: `https://${randomUUID()}.invalid/path/to/content`,
+        };
+    });
+    runTestsForWebContent("ipfs", client, () => {
+        return { type: "url", value: `ipfs://${randomUUID()}` };
+    });
 });

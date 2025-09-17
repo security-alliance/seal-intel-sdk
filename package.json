@@ -29,18 +29,16 @@
         "prettier:fix": "npx prettier -w \"**/*.{js,ts,md,json,yml,yaml}\""
     },
     "dependencies": {
-        "@apollo/client": "^3.13.8",
-        "@security-alliance/opencti-client": "^0.3.1",
+        "@security-alliance/opencti-client": "^0.3.2",
         "@security-alliance/stix": "^0.1.1",
-        "graphql": "^16.11.0",
-        "tldts": "^7.0.10"
+        "tldts": "^7.0.14"
     },
     "devDependencies": {
-        "@types/node": "^24.1.0",
-        "mocha": "^11.7.1",
+        "@types/node": "^24.5.1",
+        "mocha": "^11.7.2",
         "prettier": "^3.6.2",
-        "tsx": "^4.20.3",
-        "typescript": "^5.8.3"
+        "tsx": "^4.20.5",
+        "typescript": "^5.9.2"
     },
     "publishConfig": {
         "access": "public"
