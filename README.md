@@ -27,20 +27,37 @@ const client = new WebContentClient(opencti, YOUR_IDENTITY_ID);
 ### Block or Trust Content
 
 ```typescript
-// Block a phishing URL
-await client.blockWebContent({ type: "url", value: "https://phishing-site.com" });
+// Block a domain
+await client.blockWebContent({ type: "domain-name", value: "phishing-site.com" });
 
-// Trust a legitimate domain
+// Block a subdomain
+await client.blockWebContent({ type: "domain-name", value: "scam.github.io" });
+
+// Trust a domain
 await client.trustWebContent({ type: "domain-name", value: "example.com" });
 
 // Check status
-const status = await client.getWebContentStatus({ type: "url", value: "https://example.com" });
+const status = await client.getWebContentStatus({ type: "domain-name", value: "phishing-site.com" });
 // Returns: { status: "blocked" | "trusted" | "unknown", actor?: Identifier<'identity'> }
 
 // Unblock or untrust
-await client.unblockWebContent({ type: "url", value: "https://phishing-site.com" });
+await client.unblockWebContent({ type: "domain-name", value: "phishing-site.com" });
 await client.untrustWebContent({ type: "domain-name", value: "example.com" });
 ```
+
+### Domain vs URL Blocking
+
+Prefer reporting domains or subdomains. Most platforms do not support URL blocking yet:
+- URL blocking support varies by platform
+- Some platforms only allow URL blocking for whitelisted domains
+- Outcome for reporting URLs is not guaranteed
+
+Domains and subdomains are supported across most platforms.
+
+**When reporting:**
+- Report the subdomain when only it is malicious: `scam.github.io`, `phishing.medium.com`
+- Report the full domain when the entire domain is malicious: `phishing-site.com`
+- Do not report parent domains when only a subdomain is malicious (e.g., `github.io`, `medium.com`)
 
 ### Available Content Types
 
