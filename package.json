@@ -1,6 +1,6 @@
 {
     "name": "@security-alliance/seal-intel-sdk",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "description": "TypeScript client for interacting with SEAL Intel",
     "keywords": [
         "seal-intel",
@@ -29,16 +29,16 @@
         "prettier:fix": "npx prettier -w \"**/*.{js,ts,md,json,yml,yaml}\""
     },
     "dependencies": {
-        "@security-alliance/opencti-client": "^0.3.3",
+        "@security-alliance/opencti-client": "^0.4.1",
         "@security-alliance/stix": "^0.1.1",
-        "tldts": "^7.0.14"
+        "tldts": "^7.0.24"
     },
     "devDependencies": {
-        "@types/node": "^24.5.2",
-        "mocha": "^11.7.2",
-        "prettier": "^3.6.2",
-        "tsx": "^4.20.5",
-        "typescript": "^5.9.2"
+        "@types/node": "^25.3.3",
+        "mocha": "^11.7.5",
+        "prettier": "^3.8.1",
+        "tsx": "^4.21.0",
+        "typescript": "^5.9.3"
     },
     "publishConfig": {
         "access": "public"

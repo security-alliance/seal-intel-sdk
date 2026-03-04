@@ -58,13 +58,24 @@ export class WebContentClient {
             id: generateIndicatorId({ pattern: generatePatternForWebContent(content) }),
         });
         if (existingIndicator) {
+            if (existingIndicator.revoked) {
+                // When an indicator is revoked (e.g. expired), OpenCTI's indicatorEditField
+                // ignores explicit `revoked` values when `valid_until` or `x_opencti_score`
+                // are also present, and overrides score/valid_until with defaults on un-revoke.
+                // So we must first move valid_until to the future (which implicitly un-revokes),
+                // then set the actual desired values in a second call.
+                await this.client.indicatorFieldPatch({
+                    id: existingIndicator.id,
+                    input: [{ key: "valid_until", value: [new Date(now + ONE_YEAR_IN_MILLIS)] }],
+                });
+            }
+
             return (await this.client.indicatorFieldPatch({
                 id: existingIndicator.id,
                 input: [
                     { key: "valid_from", value: [new Date(now)] },
                     { key: "valid_until", value: [new Date(now + ONE_YEAR_IN_MILLIS)] },
                     { key: "x_opencti_score", value: [100] },
-                    { key: "revoked", value: [false] },
                     { key: "createdBy", value: [props.creator] },
                 ],
             }))!;
@@ -164,25 +175,20 @@ export class WebContentClient {
         const labelsToRemove = (props.removeLabels ?? []).filter((l) => this.findLabel(observable, l) !== undefined);
 
         if (labelsToAdd.length > 0 || labelsToRemove.length > 0) {
-            observable = (await this.client.stixCyberObservableEdit_fieldPatch(
-                {
-                    id: observable.id,
-                },
-                {
-                    input: [
-                        { key: "createdBy", value: [props.creator] },
-                        {
-                            key: "objectLabel",
-                            value: [
-                                ...(observable.objectLabel ?? [])
-                                    .filter((l) => !l.value || !(props.removeLabels ?? []).includes(l.value))
-                                    .map((v) => v.standard_id),
-                                ...(props.addLabels ?? []).map((l) => generateLabelId({ value: l })),
-                            ],
-                        },
-                    ],
-                },
-            ))!;
+            observable = (await this.client.stixCyberObservableEdit({ id: observable.id }).fieldPatch({
+                input: [
+                    { key: "createdBy", value: [props.creator] },
+                    {
+                        key: "objectLabel",
+                        value: [
+                            ...(observable.objectLabel ?? [])
+                                .filter((l) => !l.value || !(props.removeLabels ?? []).includes(l.value))
+                                .map((v) => v.standard_id),
+                            ...(props.addLabels ?? []).map((l) => generateLabelId({ value: l })),
+                        ],
+                    },
+                ],
+            }))!;
         }
         return observable;
     }
