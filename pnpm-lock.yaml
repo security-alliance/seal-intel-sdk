@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@security-alliance/opencti-client':
-        specifier: ^0.4.1
-        version: 0.4.1
+        specifier: ^0.5.0
+        version: 0.5.0
       '@security-alliance/stix':
         specifier: ^0.1.1
         version: 0.1.1
@@ -200,8 +200,8 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
-  '@security-alliance/opencti-client@0.4.1':
-    resolution: {integrity: sha512-SB4iYi2CLyoRMP85u6+rS4PfXB0oZX/QkrWK0Sfy7B6rtamUjk5J42hQXGETTlbUfHqCVHEfY9oQMkhMIik6IA==}
+  '@security-alliance/opencti-client@0.5.0':
+    resolution: {integrity: sha512-2zdQvzwJnhLi0QrWlaA6bf+dybNHDZflOPtKRK6luHROHSMwdo/tQz3iiIWJK9zdn55DsV8Z7I8CVYT/mG/eIg==}
 
   '@security-alliance/stix@0.1.1':
     resolution: {integrity: sha512-qGWBAsX0mfapeGT1IKmhax2RcXcYoDGaWZNYtkE1suIvv1F8xF69N/IJg3ifzGsW/vK7cBvBGxmOMfRaH+D0iA==}
@@ -650,7 +650,7 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@security-alliance/opencti-client@0.4.1':
+  '@security-alliance/opencti-client@0.5.0':
     dependencies:
       '@security-alliance/stix': 0.1.1
       eventsource: 4.1.0
