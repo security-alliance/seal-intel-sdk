@@ -22,7 +22,7 @@
     },
     "repository": "github:security-alliance/seal-intel-sdk",
     "scripts": {
-        "build": "rm -rf dist; tsc",
+        "build": "tsc",
         "test": "mocha",
         "prepublishOnly": "npm run build",
         "prettier:check": "npx prettier -c \"**/*.{js,ts,md,json,yml,yaml}\"",
