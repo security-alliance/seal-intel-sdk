@@ -7,6 +7,7 @@ import {
 } from "@security-alliance/opencti-client";
 import { generateIndicatorId, generateLabelId, MARKING_TLP_CLEAR } from "@security-alliance/opencti-client/stix";
 import { Identifier } from "@security-alliance/stix/2.1";
+import { normalizeWebContent } from "../utils/normalize-web-content.js";
 import {
     ALLOWLISTED_DOMAIN_LABEL,
     BLOCKLISTED_DOMAIN_LABEL,
@@ -198,6 +199,8 @@ export class WebContentClient {
     }
 
     public async getWebContentStatus(content: WebContent): Promise<WebContentStatus> {
+        content = normalizeWebContent(content);
+        
         const [observable, indicator] = await Promise.all([
             this.client.stixCyberObservable({ id: generateObservableIdForWebContent(content) }),
             this.client.indicator({ id: generateIndicatorId({ pattern: generatePatternForWebContent(content) }) }),
@@ -222,6 +225,7 @@ export class WebContentClient {
     }
 
     public async blockWebContent(content: WebContent, creator?: Identifier<"identity">): Promise<Indicator_All> {
+        content = normalizeWebContent(content);
         creator ??= this.defaultIdentity;
 
         const observable = await this.createOrUpdateObservable(content, {
@@ -244,6 +248,7 @@ export class WebContentClient {
         content: WebContent,
         creator?: Identifier<"identity">,
     ): Promise<Indicator_All | undefined> {
+        content = normalizeWebContent(content);
         creator ??= this.defaultIdentity;
 
         const observable = await this.client.stixCyberObservable({ id: generateObservableIdForWebContent(content) });
@@ -273,6 +278,7 @@ export class WebContentClient {
         content: WebContent,
         creator?: Identifier<"identity">,
     ): Promise<StixCyberObservable_All> {
+        content = normalizeWebContent(content);
         creator ??= this.defaultIdentity;
 
         await this.unblockWebContent(content, creator);
@@ -288,6 +294,7 @@ export class WebContentClient {
         content: WebContent,
         creator?: Identifier<"identity">,
     ): Promise<StixCyberObservable_All | undefined> {
+        content = normalizeWebContent(content);
         creator ??= this.defaultIdentity;
 
         const observable = await this.client.stixCyberObservable({ id: generateObservableIdForWebContent(content) });
